@@ -1,7 +1,6 @@
 package gogo
 
 import (
-	"log"
 	"net/http"
 	"strings"
 )
@@ -41,7 +40,6 @@ func parsePattern(pattern string) []string {
 func (r *router) addRoute(method, pattern string, handler HandlerFunc) {
 	parts := parsePattern(pattern)
 
-	log.Printf("Route %4s - %s", method, pattern)
 	key := method + "-" + pattern
 	if _, ok := r.roots[method]; !ok {
 		r.roots[method] = &node{}
@@ -82,8 +80,9 @@ func (r *router) handle(c *Context) {
 	if n != nil {
 		c.Params = params
 		key := c.Method + "-" + n.pattern
-		r.handers[key](c)
+		c.handlers = append(c.handlers, r.handers[key])
 	} else {
 		c.String(http.StatusNotFound, "404 NOT FOUND: %s\n", c.Path)
 	}
+	c.Next()
 }
